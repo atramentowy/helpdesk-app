@@ -1,0 +1,115 @@
+body {
+	margin: 0;
+  	padding: 0;
+	font-family: Arial;
+	display: flex;
+	flex-direction: column;
+	padding-bottom: 50px;
+	height: 100%;
+	min-height: 100vh;
+}
+
+header {
+	color: white;
+	background-color: black;
+}
+
+footer {
+	margin-top: auto;
+    background: black;
+    color: white;
+    text-align: center;
+    padding: 0px;
+
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+}
+
+.topbar {
+	text-align: left;
+	/*display: flex;*/
+	color: white;
+	background-color: black;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.sidebar {
+	width: 30%;
+	background-color: lightgray;
+	flex-direction: column;
+}
+
+.content {
+	flex: 1;
+	background-color: white;
+
+}
+
+.layout {
+	flex: 1;
+	display: flex;
+}
+
+@media (max-width: 768px) {
+	.layout {
+		flex-direction: column;
+	}
+
+	.sidebar {
+        width: 100%;
+    }
+}
+
+ul {
+	margin: 0;
+	padding: 0;
+	list-style-type: none;
+}
+
+li {
+	margin-top: 5px;
+	padding: 5px;
+	background-color: white;
+}
+
+article {
+	margin-top: 5px;
+	padding: 5px;
+	border-style: ;
+	background-color: lightgray;
+}
+
+section {
+	margin: 10px;
+}
+
+h2 {
+	padding-left: 10px;
+	padding-right: 10px;
+	/*padding: 2px;*/
+	color: white;
+	background-color: gray;
+}
+
+h3 {
+	/*padding-left: 20px;*/
+	/*padding-right: 10px;*/
+    color: white;
+}
+
+form {
+	padding: 5px;
+	background-color: lightgray;
+}
+
+input, select, textarea {
+  font-size: 15px;
+  padding: 5px;
+  margin: 2px;
+}
+
+.centered {
+	text-align: center;
+}
