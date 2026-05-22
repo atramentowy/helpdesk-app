@@ -53,14 +53,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 	    $login = $_POST['login'] ?? '';
 	    $password = $_POST['password'] ?? '';
 	    $email = $_POST['email'] ?? '';
+	    $role = 'user';
 
 	   	if (empty($login) || empty($password) || empty($email)) {
 	        $message = "Pusty login, hasło lub email";
 	    } else {
-		   $sql = "INSERT INTO users (login, password, role) VALUES ('$login', '$password', '$role')";
+		   $sql = "INSERT INTO users (login, password, email, role) VALUES ('$login', '$password', '$email', '$role')";
 
-		    mysqli_query($conn, $sql);
-		    	        if(!$result) {
+		    $result = mysqli_query($conn, $sql);
+		  	
+		  	if(!$result) {
 	            die("Błąd SQL");
 	        }
 
@@ -68,14 +70,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 		}
 	}
 	else if ($action == 'reset') {
+	    $email = $_POST['email'] ?? '';
 
-	    // $login = $_POST['login'] ?? '';
-	    // $newPass = $_POST['password'] ?? '';
+	    if (empty($email)) {
+	    	$message = "Podaj email";
+	    } else {
+	    	$link = "http://localhost/helpdesk/reset.php?token=$token";
 
-	    // $sql = "UPDATE users SET password='$newPass' WHERE login='$login'";
-	    // mysqli_query($conn, $sql);
+	    	mail($email, "Reset hasła", $link);
 
-	    // $success = "Hasło zmienione!";
+	    	$message = "Wysłano email resetujący";
+		}
 	}
 }
 ?>
