@@ -24,3 +24,29 @@ function showDiv(id) {
 
     document.getElementById(id).classList.remove('hidden');
 }
+
+function showEdit(btn, id) {
+    showDiv(id);
+    document.getElementById("id").value = btn.dataset.id;
+    document.getElementById("title").value = btn.dataset.title;
+    document.getElementById("description").value = btn.dataset.description;
+
+    document.querySelector("input[name='user_id']").value = btn.dataset.user_id;
+    // document.getElementById("user_id").value = btn.dataset.user_id;
+
+    document.getElementById("assigned_to").value = btn.dataset.assigned_to;
+    document.getElementById("status").value = btn.dataset.status;
+    document.getElementById("priority").value = btn.dataset.priority;
+    document.getElementById("created_at").value = btn.dataset.created_at;
+}
+
+function showUserEdit(btn, id) {
+  showDiv(id);
+  document.querySelector("input[name='_user_id']").value = btn.dataset.user_id;
+  // document.getElementById('user_id').value = btn.dataset.user_id;
+
+  document.getElementById('login').value = btn.dataset.login;
+  document.getElementById('password').value = btn.dataset.password;
+  document.getElementById('email').value = btn.dataset.email;
+  document.getElementById('role').value = btn.dataset.role;
+}

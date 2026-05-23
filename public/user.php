@@ -166,12 +166,6 @@ $profile_result = mysqli_query($conn, $profile_query);
 
 						<label for="title">Tytuł zgłoszenia:</label>
 						<input type="text" id="title" name="title" placeholder="tytuł zgloszenia">
-<!-- 						<label for="status">Status zgłoszenia:</label>
-						<select id="status" name="status">
-						  <option value="wstrzymane">Wstrzymane</option>
-						  <option value="w-toku">W toku</option>
-						  <option value="rozwiazane">Rozwiązane</option>
-						</select><br> -->
 						<label for="priority">Priorytet:</label>
 						<select id="priority" name="priority">
 							<option value="wysoki">Wysoki</option>
