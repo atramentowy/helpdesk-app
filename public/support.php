@@ -88,13 +88,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 		$priority = $_POST['priority'];
 
 		$query = "UPDATE tickets SET 
-		          title='$title', 
-		          description='$description', 
-		          user_id='$user_id',
-		          assigned_to='$assigned_to',
-		          status='$status', 
-		          priority='$priority' 
-		          WHERE id=$id";
+				  title='$title', 
+				  description='$description', 
+				  user_id='$user_id',
+				  assigned_to='$assigned_to',
+				  status='$status', 
+				  priority='$priority' 
+				  WHERE id=$id";
 
 		mysqli_query($conn, $query);
 
@@ -153,8 +153,8 @@ $users_result = mysqli_query($conn, $users_query);
 								<option value="">Dowolny</option>
 								<option value="nowe">Nowe</option>
 								<option value="wstrzymane">Wstrzymane</option>
-								<option value="w-toku">W toku</option>
-								<option value="zamkniete">Zamknięte</option>
+								<option value="w_toku">W toku</option>
+								<option value="zamknięte">Zamknięte</option>
 							</select>
 							<label for="priority">Priorytet:</label>
 							<select id="priority" name="priority">
@@ -205,13 +205,13 @@ $users_result = mysqli_query($conn, $users_query);
 						<button 
 						type="button"
 						data-id="<?= $row['id'] ?>"
-            			data-title="<?= htmlspecialchars($row['title']) ?>"
-            			data-description="<?= htmlspecialchars($row['description']) ?>"
-            			data-user_id="<?= $row['user_id'] ?>"
-            			data-assigned_to="<?= $row['assigned_to'] ?>"
-            			data-status="<?= $row['status'] ?>"
-            			data-priority="<?= $row['priority'] ?>"
-            			data-created_at="<?= $row['created_at'] ?>"
+						data-title="<?= htmlspecialchars($row['title']) ?>"
+						data-description="<?= htmlspecialchars($row['description']) ?>"
+						data-user_id="<?= $row['user_id'] ?>"
+						data-assigned_to="<?= $row['assigned_to'] ?>"
+						data-status="<?= $row['status'] ?>"
+						data-priority="<?= $row['priority'] ?>"
+						data-created_at="<?= $row['created_at'] ?>"
 						onclick="showEdit(this, 'edytuj-zgloszenie')">
 						Edytuj zgłoszenie
 						</button>
@@ -221,45 +221,45 @@ $users_result = mysqli_query($conn, $users_query);
 			</div>
 			<div id="edytuj-zgloszenie" class="section hidden">
 				<h2>Edytuj zgłoszenie</h2>
-			    <section>
-			        <form id="updateTicketForm" method="POST" action="">
-			        	<input type="hidden" name="action" value="update">
-		                <table>
-		                    <tr>
-		                        <th colspan="4">Tytuł: <input type="text" id="title" name="title"></th>
-		                    </tr>
-		                    <tr>
-		                        <td colspan="2">Przypisany użytkownik: <input type="text" id="user_id" name="user_id"></td>
-		                        <td colspan="2">Przypisany support: <input type="text" id="assigned_to" name="assigned_to"></td>
-		                    </tr>
-		                    <tr>
-		                        <td>Id: <input type="text" id="id" name="id" readonly size="5"></td>
-		                        <td>Status: 
-		                            <select id="status" name="status">
-		                            	<option value="nowe">Nowe</option>
-		                                <option value="wstrzymane">Wstrzymane</option>
-		                                <option value="w_toku">W trakcie</option>
-		                                <option value="zamkniete">Zamknięte</option>
-		                            </select>
-		                        </td>
-		                        <td>Priorytet:
-		                        	<label for="priority">Priorytet:</label>
-		                            <select id="priority" name="priority">
-		                                <option value="niski">Niski</option>
-		                                <option value="sredni">Średni</option>
-		                                <option value="wysoki">Wysoki</option>
-		                            </select>
-		                        </td>
-		                        <td>Data utworzenia: <input type="text" id="created_at" name="created_at" readonly></td>
-		                    </tr>
-		                    <tr>
-		                        <td colspan="4">Opis: <br><textarea id="description" name="description" rows="4"></textarea></td>
-		                    </tr>
-		                </table>
-		                <button type="submit">Zapisz zmiany</button>
-		                <button type="button" onclick="showDiv('zgloszenia')">Anuluj</button>
-			        </form>
-			    </section>
+				<section>
+					<form id="updateTicketForm" method="POST" action="">
+						<input type="hidden" name="action" value="update">
+						<table>
+							<tr>
+								<th colspan="4">Tytuł: <input type="text" id="title" name="title"></th>
+							</tr>
+							<tr>
+								<td colspan="2">Przypisany użytkownik: <input type="text" id="user_id" name="user_id"></td>
+								<td colspan="2">Przypisany support: <input type="text" id="assigned_to" name="assigned_to"></td>
+							</tr>
+							<tr>
+								<td>Id: <input type="text" id="id" name="id" readonly size="5"></td>
+								<td>Status: 
+									<select id="status" name="status">
+										<option value="nowe">Nowe</option>
+										<option value="wstrzymane">Wstrzymane</option>
+										<option value="w_toku">W toku</option>
+										<option value="zamknięte">Zamknięte</option>
+									</select>
+								</td>
+								<td>Priorytet:
+									<label for="priority">Priorytet:</label>
+									<select id="priority" name="priority">
+										<option value="niski">Niski</option>
+										<option value="sredni">Średni</option>
+										<option value="wysoki">Wysoki</option>
+									</select>
+								</td>
+								<td>Data utworzenia: <input type="text" id="created_at" name="created_at" readonly></td>
+							</tr>
+							<tr>
+								<td colspan="4">Opis: <br><textarea id="description" name="description" rows="4"></textarea></td>
+							</tr>
+						</table>
+						<button type="submit">Zapisz zmiany</button>
+						<button type="button" onclick="showDiv('zgloszenia')">Anuluj</button>
+					</form>
+				</section>
 			</div>
 			<div id="nowe-zgloszenie" class="section hidden">
 				<h2>Nowe zgłoszenie</h2>

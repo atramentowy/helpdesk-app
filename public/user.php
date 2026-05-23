@@ -69,6 +69,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 			exit();
 		}
 	}
+	else if($action == 'new_comment') {
+		echo "test";
+	}
 }
 
 $tickets_result = mysqli_query($conn, $tickets_query);
@@ -119,8 +122,8 @@ $profile_result = mysqli_query($conn, $profile_query);
 								<option value="">Dowolny</option>
 								<option value="nowe">Nowe</option>
 								<option value="wstrzymane">Wstrzymane</option>
-								<option value="w-toku">W toku</option>
-								<option value="zamkniete">Zamknięte</option>
+								<option value="w_toku">W toku</option>
+								<option value="zamknięte">Zamknięte</option>
 							</select>
 							<label for="priority">Priorytet:</label>
 							<select id="priority" name="priority">
@@ -154,9 +157,20 @@ $profile_result = mysqli_query($conn, $profile_query);
 								<td colspan="4">Opis: <?= htmlspecialchars($row['description']) ?></td>
 							</tr>
 						</table>
+					<input type="button" onclick="showDiv('podglad-zgloszenia')" value="Podgląd">
 					</article>
+
 					<?php } ?>
 				</section>
+			</div>
+			<div id="podglad-zgloszenia" class="section hidden">
+				<h2>Podgląd zgłoszenia</h2>
+
+				<form method="POST" action="">
+			        <input type="hidden" name="ticket_id" id="new_comment">
+			        <textarea name="comment" rows="3" placeholder="Dodaj komentarz..." required></textarea>
+			        <button type="submit" name="add_comment">Dodaj komentarz</button>
+			    </form>
 			</div>
 			<div id="nowe-zgloszenie" class="section hidden">
 				<h2>Nowe zgłoszenie</h2>

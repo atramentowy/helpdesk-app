@@ -89,13 +89,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 		$priority = $_POST['priority'];
 
 		$query = "UPDATE tickets SET 
-          title='$title', 
-          description='$description', 
-          user_id='$user_id',
-          assigned_to='$assigned_to',
-          status='$status', 
-          priority='$priority' 
-          WHERE id=$id";
+		  title='$title', 
+		  description='$description', 
+		  user_id='$user_id',
+		  assigned_to='$assigned_to',
+		  status='$status', 
+		  priority='$priority' 
+		  WHERE id=$id";
 
 		mysqli_query($conn, $query);
 
@@ -105,27 +105,67 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 		exit();
 	}
 	else if($action == 'update_user') {
-	    $id = $_POST['_user_id'] ?? '';
-	    $login = $_POST['login'] ?? '';
-	    $password = $_POST['password'] ?? '';
-	    $email = $_POST['email'] ?? '';
-	    $role = $_POST['role'] ?? '';
+		$id = $_POST['_user_id'] ?? '';
+		$login = $_POST['login'] ?? '';
+		$password = $_POST['password'] ?? '';
+		$email = $_POST['email'] ?? '';
+		$role = $_POST['role'] ?? '';
 
-	    if (!empty($id)) {
-	        $query = "UPDATE users SET 
-	                  login = '$login',
-	                  password = '$password',
-	                  email = '$email', 
-	                  role = '$role' 
-	                  WHERE id = $id";
-	        
-	        mysqli_query($conn, $query);
-	    }
-	    
-	    echo "Użytkownik zedytowany pomyślnie";
+		if (!empty($id)) {
+			$query = "UPDATE users SET 
+					  login = '$login',
+					  password = '$password',
+					  email = '$email', 
+					  role = '$role' 
+					  WHERE id = $id";
+			
+			mysqli_query($conn, $query);
+		}
+		
+		echo "Użytkownik zedytowany pomyślnie";
 
-	    header("Location: admin.php");
-	    exit();
+		header("Location: admin.php");
+		exit();
+	}
+	else if($action == 'delete_user') {
+		$id = $_POST['_user_id'] ?? '';
+
+		if (!empty($id)) {
+			if($id == $_SESSION['user_id']) {
+				echo "Nie można usunąć własnego konta";
+
+				header(("Location: admin.php"));
+				exit();
+			}
+			else {
+		    	$del_query = "DELETE FROM users WHERE id = $id";
+		    	mysqli_query($conn, $del_query);
+			}
+		}
+
+		header("Location: admin.php");
+		exit();
+	}
+	else if($action == 'new_user') {
+		$login = $_POST['login'] ?? '';
+		$email = $_POST['email'] ?? '';
+		$password = $_POST['password'] ?? '';
+		$role = $_POST['role'] ?? 'user';
+
+		if (!empty($login) && !empty($email) && !empty($password)) {
+		    // Hashowanie hasła
+		    // $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+		    
+		    $query = "INSERT INTO users (login, email, password, role) 
+		              VALUES ('$login', '$email', '$password', '$role')";
+		    
+		    mysqli_query($conn, $query);
+		}
+
+		echo "Użytkownik pomyślnie stworzony";
+
+		header("Location: admin.php");
+		exit();
 	}
 }
 
@@ -179,8 +219,8 @@ $users_result2 = mysqli_query($conn, $users_query2);
 								<option value="">Dowolny</option>
 								<option value="nowe">Nowe</option>
 								<option value="wstrzymane">Wstrzymane</option>
-								<option value="w-toku">W toku</option>
-								<option value="zamkniete">Zamknięte</option>
+								<option value="w_toku">W toku</option>
+								<option value="zamknięte">Zamknięte</option>
 							</select>
 							<label for="priority">Priorytet:</label>
 							<select id="priority" name="priority">
@@ -231,13 +271,13 @@ $users_result2 = mysqli_query($conn, $users_query2);
 						<button 
 						type="button"
 						data-id="<?= $row['id'] ?>"
-            			data-title="<?= htmlspecialchars($row['title']) ?>"
-            			data-description="<?= htmlspecialchars($row['description']) ?>"
-            			data-user_id="<?= $row['user_id'] ?>"
-            			data-assigned_to="<?= $row['assigned_to'] ?>"
-            			data-status="<?= $row['status'] ?>"
-            			data-priority="<?= $row['priority'] ?>"
-            			data-created_at="<?= $row['created_at'] ?>"
+						data-title="<?= htmlspecialchars($row['title']) ?>"
+						data-description="<?= htmlspecialchars($row['description']) ?>"
+						data-user_id="<?= $row['user_id'] ?>"
+						data-assigned_to="<?= $row['assigned_to'] ?>"
+						data-status="<?= $row['status'] ?>"
+						data-priority="<?= $row['priority'] ?>"
+						data-created_at="<?= $row['created_at'] ?>"
 						onclick="showEdit(this, 'edytuj-zgloszenie')">
 						Edytuj zgłoszenie
 						</button>
@@ -247,45 +287,45 @@ $users_result2 = mysqli_query($conn, $users_query2);
 			</div>
 			<div id="edytuj-zgloszenie" class="section hidden">
 				<h2>Edytuj zgłoszenie</h2>
-			    <section>
-			        <form id="updateTicketForm" method="POST" action="">
-			        	<input type="hidden" name="action" value="update">
-		                <table>
-		                    <tr>
-		                        <th colspan="4">Tytuł: <input type="text" id="title" name="title"></th>
-		                    </tr>
-		                    <tr>
-		                        <td colspan="2">Przypisany użytkownik: <input type="text" id="user_id" name="user_id"></td>
-		                        <td colspan="2">Przypisany support: <input type="text" id="assigned_to" name="assigned_to"></td>
-		                    </tr>
-		                    <tr>
-		                        <td>Id: <input type="text" id="id" name="id" readonly size="5"></td>
-		                        <td>Status: 
-		                            <select id="status" name="status">
-		                            	<option value="nowe">Nowe</option>
-		                                <option value="wstrzymane">Wstrzymane</option>
-		                                <option value="w_toku">W trakcie</option>
-		                                <option value="zamkniete">Zamknięte</option>
-		                            </select>
-		                        </td>
-		                        <td>Priorytet:
-		                        	<label for="priority">Priorytet:</label>
-		                            <select id="priority" name="priority">
-		                                <option value="niski">Niski</option>
-		                                <option value="sredni">Średni</option>
-		                                <option value="wysoki">Wysoki</option>
-		                            </select>
-		                        </td>
-		                        <td>Data utworzenia: <input type="text" id="created_at" name="created_at" readonly></td>
-		                    </tr>
-		                    <tr>
-		                        <td colspan="4">Opis: <br><textarea id="description" name="description" rows="4"></textarea></td>
-		                    </tr>
-		                </table>
-		                <button type="submit">Zapisz zmiany</button>
-		                <button type="button" onclick="showDiv('zgloszenia')">Anuluj</button>
-			        </form>
-			    </section>
+				<section>
+					<form id="updateTicketForm" method="POST" action="">
+						<input type="hidden" name="action" value="update">
+						<table>
+							<tr>
+								<th colspan="4">Tytuł: <input type="text" id="title" name="title"></th>
+							</tr>
+							<tr>
+								<td colspan="2">Przypisany użytkownik: <input type="text" id="user_id" name="user_id"></td>
+								<td colspan="2">Przypisany support: <input type="text" id="assigned_to" name="assigned_to"></td>
+							</tr>
+							<tr>
+								<td>Id: <input type="text" id="id" name="id" readonly size="5"></td>
+								<td>Status: 
+									<select id="status" name="status">
+										<option value="nowe">Nowe</option>
+										<option value="wstrzymane">Wstrzymane</option>
+										<option value="w_toku">W toku</option>
+										<option value="zamkniete">Zamknięte</option>
+									</select>
+								</td>
+								<td>Priorytet:
+									<label for="priority">Priorytet:</label>
+									<select id="priority" name="priority">
+										<option value="niski">Niski</option>
+										<option value="sredni">Średni</option>
+										<option value="wysoki">Wysoki</option>
+									</select>
+								</td>
+								<td>Data utworzenia: <input type="text" id="created_at" name="created_at" readonly></td>
+							</tr>
+							<tr>
+								<td colspan="4">Opis: <br><textarea id="description" name="description" rows="4"></textarea></td>
+							</tr>
+						</table>
+						<button type="submit">Zapisz zmiany</button>
+						<button type="button" onclick="showDiv('zgloszenia')">Anuluj</button>
+					</form>
+				</section>
 			</div>
 			<div id="nowe-zgloszenie" class="section hidden">
 				<h2>Nowe zgłoszenie</h2>
@@ -300,7 +340,7 @@ $users_result2 = mysqli_query($conn, $users_query2);
 						  <option value="nowe">Nowe</option>
 						  <option value="wstrzymane">Wstrzymane</option>
 						  <option value="w_toku">W toku</option>
-						  <option value="rozwiazane">Rozwiązane</option>
+						  <option value="zamknięte">Rozwiązane</option>
 						</select><br>
 						<label for="priority">Priorytet:</label>
 						<select id="priority" name="priority">
@@ -316,47 +356,101 @@ $users_result2 = mysqli_query($conn, $users_query2);
 			</div>
 			<div id="uzytkownicy" class="section hidden">
 				<h2>Użytkownicy</h2>
-			    <section>
-			        <article>
-			            <table class="ticket">
-			                <thead>
-			                    <tr>
-			                        <th>ID</th>
-			                        <th>Login</th>
-			                        <th>Akcje</th>
-			                    </tr>
-			                </thead>
-			                <tbody>
-			                    <?php while ($row = mysqli_fetch_assoc($users_result2)): ?>
-			                    <tr>
-			                        <td><?= $row['id'] ?></td>
-			                        <td><?= htmlspecialchars($row['login']) ?></td>
-			                        <td>
-			                            <button 
-			                            type="button"
-			                            data-user_id="<?= $row['id'] ?>"
-			                            data-login="<?= htmlspecialchars($row['login']) ?>"
-			                            data-password="<?= $row['password'] ?>"
-			                            data-email="<?= htmlspecialchars($row['email']) ?>"
-			                            data-role="<?= $row['role'] ?>"
-			                            onclick="showUserEdit(this, 'edit-user')">Edytuj</button>
-			                        </td>
-			                    </tr>
-			                    <?php endwhile; ?>
-			                </tbody>
-			            </table>
-			        </article>
-			    </section>
+				<section>
+					<article>
+						<table class="ticket">
+							<thead>
+								<tr>
+									<th>ID</th>
+									<th>Login</th>
+									<th>Akcje</th>
+								</tr>
+							</thead>
+							<tbody>
+								<?php while ($row = mysqli_fetch_assoc($users_result2)): ?>
+								<tr>
+									<td><?= $row['id'] ?></td>
+									<td><?= htmlspecialchars($row['login']) ?></td>
+									<td>
+										<button 
+											type="button"
+											data-user_id="<?= $row['id'] ?>"
+											data-login="<?= htmlspecialchars($row['login']) ?>"
+											data-password="<?= $row['password'] ?>"
+											data-email="<?= htmlspecialchars($row['email']) ?>"
+											data-role="<?= $row['role'] ?>"
+											onclick="showUserEdit(this, 'edit-user')">
+											Edytuj
+										</button>
+										<button 
+											type="button"
+											data-user_id="<?= $row['id'] ?>"
+											data-login="<?= htmlspecialchars($row['login']) ?>"
+											onclick="showUserDel(this, 'delete-user')">
+											Usuń
+										</button>
+									</td>
+								</tr>
+								<?php endwhile; ?>
+							</tbody>
+						</table>		
+					</article>
+					<article>
+						<button type="button" onclick="showDiv('create-user')">Stwórz użytkownika</button>
+					</article>
+				</section>
+			</div>
+			<div id="create-user" class="section hidden">
+				<h2>Tworzenie użytkownika</h2>
+				<section>
+				<form id="newUserForm" class="form" method="POST" action="">
+					<input type="hidden" name="action" value="new_user">
+					<table>
+						<tr>
+							<td>Login: <input type="text" id="login" name="login"></td>
+						</tr>
+						<tr>
+							<td>Password: <input type="text" id="password" name="password"></td>
+						</tr>
+						<tr>
+							<td>Email: <input type="text" id="email" name="email"></td>
+						</tr>
+						<tr>
+							<td>Rola: 
+								<select id="role" name="role">
+									<option value="user">Użytkownik</option>
+									<option value="admin">Administrator</option>
+									<option value="support">Support</option>
+								</select>
+							</td>
+						</tr>
+					</table>
+					<br>
+					<button type="submit">Dodaj użytkownika</button>
+					<button type="button" onclick="showDiv('uzytkownicy')">Anuluj</button>
+				</form>
+				</section>
+			</div>
+			<div id="delete-user" class="section hidden">
+				<h2>Usuwanie użytkownika</h2>
+				<form id="deleteUserForm" method="POST" action="">
+					<input type="hidden" name="action" value="delete_user">
+					<p>Czy chciałbyś usunąć tego użytkownika?</p>
+					<label for="_user_id">Id: </label>
+					<input type="text" id="_user_id" name="_user_id" readonly><br>
+					<label for="login">Login: </label>
+					<input type="text" id="login" name="login" readonly><br>
+					<br>
+					<button type="submit">Usuń użytkownika</button>
+					<button type="button" onclick="showDiv('uzytkownicy')">Anuluj</button>
+				</form>
 			</div>
 			<div id="edit-user" class="section hidden">
 				<h2>Edytuj użytkownika</h2>
-			    <section>
-			        <form id="updateUserForm" method="POST" action="">
-			        	<input type="hidden" name="action" value="update_user">
-			        	<table>
-							<tr>
-								<td>Id: <input type="text" id="_user_id" name="_user_id"></td>
-							</tr>
+				<section>
+					<form id="updateUserForm" method="POST" action="">
+						<input type="hidden" name="action" value="update_user">
+						<table>
 							<tr>
 								<td>Login: <input type="text" id="login" name="login"></td>
 							</tr>
@@ -368,19 +462,19 @@ $users_result2 = mysqli_query($conn, $users_query2);
 							</tr>
 							<tr>
 								<td>Rola: 
-			                        <select id="role" name="role">
-			                            <option value="user">Użytkownik</option>
-			                            <option value="admin">Administrator</option>
-			                            <option value="support">Support</option>
-			                        </select>
+									<select id="role" name="role">
+										<option value="user">Użytkownik</option>
+										<option value="admin">Administrator</option>
+										<option value="support">Support</option>
+									</select>
 								</td>
 							</tr>
 						</table>
 						<br>
-		                <button type="submit">Zapisz zmiany</button>
-		                <button type="button" onclick="showDiv('uzytkownicy')">Anuluj</button>
-			        </form>
-			    </section>
+						<button type="submit">Zapisz zmiany</button>
+						<button type="button" onclick="showDiv('uzytkownicy')">Anuluj</button>
+					</form>
+				</section>
 			</div>
 			<div id="profil" class="section hidden">
 				<h2>Profil</h2>
