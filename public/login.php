@@ -78,9 +78,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 	        $result = mysqli_stmt_get_result($stmt);
 
 	        if (mysqli_num_rows($result) > 0) {
-
 	            $message = "Taki login już istnieje";
-
 	        } else {
 	            $hashedPassword = password_hash(
 	                $password,
