@@ -18,34 +18,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 	    if (empty($login) || empty($password)) {
 	        $message = "Zły login lub hasło";
 	    } else {
-			$sql = "SELECT id, role FROM users 
-			        WHERE login='$login' AND password='$password'";
+			$stmt = mysqli_prepare(
+			    $conn,
+			    "SELECT id, role, password FROM users WHERE login=?"
+			);
 
-			$result = mysqli_query($conn, $sql);
+			mysqli_stmt_bind_param($stmt, "s", $login);
+			mysqli_stmt_execute($stmt);
+
+			$result = mysqli_stmt_get_result($stmt);
 
 			if (mysqli_num_rows($result) == 0) {
-			    $message = "Zły login lub hasło";
+			    $message = "Zły login lub hasło result = 0";
 			} else {
-
 			    $user = mysqli_fetch_assoc($result);
 
-			    $_SESSION["user_id"] = $user["id"];
-			    $_SESSION["role"] = $user["role"];
-			    $_SESSION["login"] = $login;
+			    if(!password_verify($password, $user['password'])) {
+			    	$message = "Zły login lub hasło";
+			    } else {
+				    $_SESSION["user_id"] = $user["id"];
+				    $_SESSION["role"] = $user["role"];
+				    $_SESSION["login"] = $login;
 
-			    switch($user["role"]) {
-			        case "admin":
-			            header("Location: admin.php");
-			            exit();
+				    switch($user["role"]) {
+				        case "admin":
+				            header("Location: admin.php");
+				            exit();
 
-			        case "support":
-			            header("Location: support.php");
-			            exit();
+				        case "support":
+				            header("Location: support.php");
+				            exit();
 
-			        case "user":
-			            header("Location: user.php");
-			            exit();
-			    }
+				        case "user":
+				            header("Location: user.php");
+				            exit();
+				    }
+				}
 			}
 	    }
 	}
@@ -58,15 +66,47 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 	   	if (empty($login) || empty($password) || empty($email)) {
 	        $message = "Pusty login, hasło lub email";
 	    } else {
-		   $sql = "INSERT INTO users (login, password, email, role) VALUES ('$login', '$password', '$email', '$role')";
 
-		    $result = mysqli_query($conn, $sql);
-		  	
-		  	if(!$result) {
-	            die("Błąd SQL");
+			$stmt = mysqli_prepare(
+	            $conn,
+	            "SELECT id FROM users WHERE login=?"
+	        );
+
+	        mysqli_stmt_bind_param($stmt, "s", $login);
+	        mysqli_stmt_execute($stmt);
+
+	        $result = mysqli_stmt_get_result($stmt);
+
+	        if (mysqli_num_rows($result) > 0) {
+
+	            $message = "Taki login już istnieje";
+
+	        } else {
+	            $hashedPassword = password_hash(
+	                $password,
+	                PASSWORD_DEFAULT
+	            );
+
+	            $stmt = mysqli_prepare(
+	                $conn,
+	                "INSERT INTO users(login, email, password, role)
+	                 VALUES(?, ?, ?, 'user')"
+	            );
+
+	            mysqli_stmt_bind_param(
+	                $stmt,
+	                "sss",
+	                $login,
+	                $email,
+	                $hashedPassword
+	            );
+
+	            if (mysqli_stmt_execute($stmt)) {
+	                $message = "Konto utworzone";
+	            } else {
+	                $message = "Błąd podczas rejestracji";
+	            }
 	        }
-
-		    $message = "Konto utworzone!";
 		}
 	}
 	else if ($action == 'reset') {

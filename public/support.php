@@ -70,9 +70,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 			$status, '$priority', current_timestamp())
 			";
 
-			$new_ticket_result = mysqli_query($conn, $ticket);
-
-			echo "Zgłoszenie pomyślnie stworzone";
+			if($new_ticket_result) {
+				echo "Zgłoszenie pomyślnie stworzone";
+			} else {
+				echo "Error";
+			}
 
 			header("Location: user.php");
 			exit();
@@ -88,20 +90,56 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 		$priority = $_POST['priority'];
 
 		$query = "UPDATE tickets SET 
-				  title='$title', 
-				  description='$description', 
-				  user_id='$user_id',
-				  assigned_to='$assigned_to',
-				  status='$status', 
-				  priority='$priority' 
-				  WHERE id=$id";
+			title='$title', 
+			description='$description', 
+			user_id='$user_id',
+			assigned_to='$assigned_to',
+			status='$status', 
+			priority='$priority' 
+			WHERE id=$id";
 
-		mysqli_query($conn, $query);
+		$update_result = mysqli_query($conn, $query);
 
-		echo "Zgłoszenie zedytowane pomyślnie";
+		if($update_result) {
+			echo "Zgłoszenie zedytowane pomyślnie";
+		} else {
+			echo "Error";
+		}
 
 		header("Location: support.php");
 		exit();
+	}
+	else if($action == 'change_password') {
+	    // Pobierz dane
+	    $old = $_POST['old_password'];
+	    $new = $_POST['new_password'];
+	    $repeat = $_POST['repeat_password'];
+	    
+	    // Sprawdź czy nowe hasła pasują
+	    if($new !== $repeat) {
+	        $_SESSION['error'] = "Hasła nie pasują!";
+	        header("Location: support.php");
+	        exit();
+	    }
+	    
+	    // Pobierz stare hasło
+	    $result = mysqli_query($conn, "SELECT password FROM users WHERE id = {$_SESSION['user_id']}");
+	    $user = mysqli_fetch_assoc($result);
+	    
+	    // Sprawdź stare hasło
+	    if(!password_verify($old, $user['password'])) {
+	        $_SESSION['error'] = "Stare hasło jest nieprawidłowe!";
+	        header("Location: support.php");
+	        exit();
+	    }
+	    
+	    // Zapisz nowe hasło
+	    $hashed = password_hash($new, PASSWORD_DEFAULT);
+	    mysqli_query($conn, "UPDATE users SET password = '$hashed' WHERE id = {$_SESSION['user_id']}");
+	    
+	    $_SESSION['message'] = "Hasło zmienione!";
+	    header("Location: support.php");
+	    exit();
 	}
 }
 
@@ -309,6 +347,31 @@ $users_result = mysqli_query($conn, $users_query);
 						</table>
 						<?php } ?>
 					</article>
+					<article>
+						<button type="button" onclick="showDiv('change-password')">Zmień hasło</button>
+					</article>
+				</section>
+			</div>
+			<div id="change-password" class="section hidden">
+				<h2>Zmień hasło</h2>
+				<section>
+					<form id="changePasswordForm" method="POST" action="">
+						<input type="hidden" name="action" value="change_password">
+						<table>
+							<tr>
+								<td>Hasło: <input type="text" id="old_password" name="edit_password"></td>
+							</tr>
+							<tr>
+								<td>Nowe hasło: <input type="text" id="new_password" name="edit_password"></td>
+							</tr>
+							<tr>
+								<td>Powtórz hasło: <input type="text" id="repeat_password" name="edit_password"></td>
+							</tr>
+						</table>
+						<br>
+						<button type="submit">Zapisz zmiany</button>
+						<button type="button" onclick="showDiv('profil')">Anuluj</button>
+					</form>
 				</section>
 			</div>
 			<script src="script.js"></script>

@@ -8,11 +8,15 @@ if (!isset($_SESSION['user_id'])) {
 
 $conn = mysqli_connect("localhost", "root", "", "helpdesk");
 
+if (!$conn) {
+	die("Connection failed: " . mysqli_connect_error());
+}
+
 $users_query = "SELECT id, login FROM users";
 $users_query2 = "SELECT id, login, password, email, role FROM users";
 
 $tickets_query = "SELECT id, user_id, assigned_to, title, description, status, priority, created_at 
-		FROM tickets WHERE 1=1";
+FROM tickets WHERE 1=1";
 
 $profile_query = "SELECT id, login, email, role 
 		FROM users WHERE id='{$_SESSION['user_id']}'";
@@ -64,18 +68,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 			echo "Brak tytułu, priorytetu lub opisu";
 		} else {
-			$ticket = "
-			INSERT INTO tickets	
-			(id, user_id, title, description, status, priority, created_at)
-			VALUES (NULL, {$_SESSION['user_id']}, '$title', '$description', 
-			$status, '$priority', current_timestamp())
-			";
+			$ticket = "INSERT INTO tickets 
+				(id, user_id, title, description, status, priority, created_at)
+				VALUES (NULL, {$_SESSION['user_id']}, '$title', '$description', 
+				'nowe', '$priority', current_timestamp())";
 
 			$new_ticket_result = mysqli_query($conn, $ticket);
 
-			echo "Zgłoszenie pomyślnie stworzone";
+			if($new_ticket_result) {
+				echo "Zgłoszenie pomyślnie stworzone";
+			} else {
+				echo "Error";
+			}
 
-			header("Location: user.php");
+			header("Location: admin.php");
 			exit();
 		}
 	}
@@ -97,32 +103,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 		  priority='$priority' 
 		  WHERE id=$id";
 
-		mysqli_query($conn, $query);
+		$result = mysqli_query($conn, $query);
 
-		echo "Zgłoszenie zedytowane pomyślnie";
+		if($result) {
+			echo "Zgłoszenie zedytowane pomyślnie";
+		} else {
+			echo "Error";
+		}
 
-		header("Location: support.php");
+		header("Location: admin.php");
 		exit();
 	}
 	else if($action == 'update_user') {
-		$id = $_POST['_user_id'] ?? '';
-		$login = $_POST['login'] ?? '';
-		$password = $_POST['password'] ?? '';
-		$email = $_POST['email'] ?? '';
-		$role = $_POST['role'] ?? '';
+		$id = $_POST['edit_user_id'] ?? '';
+		$login = $_POST['edit_login'] ?? '';
+		$password = $_POST['edit_password'] ?? '';
+		$email = $_POST['edit_email'] ?? '';
+		$role = $_POST['edit_role'] ?? '';
+
+		$hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
 		if (!empty($id)) {
-			$query = "UPDATE users SET 
-					  login = '$login',
-					  password = '$password',
-					  email = '$email', 
-					  role = '$role' 
-					  WHERE id = $id";
+			$query = "UPDATE users 
+				SET 
+				login = '$login',
+				password = '$hashed_password',
+				email = '$email', 
+				role = '$role' 
+				WHERE id = $id";
 			
-			mysqli_query($conn, $query);
+			$result = mysqli_query($conn, $query);
+
+			if($result) {
+				echo "Użytkownik zedytowany pomyślnie";
+			} else {
+				echo "Error";
+			}
 		}
-		
-		echo "Użytkownik zedytowany pomyślnie";
 
 		header("Location: admin.php");
 		exit();
@@ -138,8 +155,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 				exit();
 			}
 			else {
-		    	$del_query = "DELETE FROM users WHERE id = $id";
-		    	mysqli_query($conn, $del_query);
+				$del_query = "DELETE FROM users WHERE id = $id";
+				mysqli_query($conn, $del_query);
 			}
 		}
 
@@ -153,19 +170,51 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 		$role = $_POST['role'] ?? 'user';
 
 		if (!empty($login) && !empty($email) && !empty($password)) {
-		    // Hashowanie hasła
-		    // $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-		    
-		    $query = "INSERT INTO users (login, email, password, role) 
-		              VALUES ('$login', '$email', '$password', '$role')";
-		    
-		    mysqli_query($conn, $query);
+			
+			$hashed_password = password_hash($password, PASSWORD_DEFAULT);
+			
+			$query = "INSERT INTO users (login, email, password, role) 
+					  VALUES ('$login', '$email', '$hashed_password', '$role')";
+			
+			mysqli_query($conn, $query);
 		}
 
 		echo "Użytkownik pomyślnie stworzony";
 
 		header("Location: admin.php");
 		exit();
+	}
+	else if($action == 'change_password') {
+	    // Pobierz dane
+	    $old = $_POST['old_password'];
+	    $new = $_POST['new_password'];
+	    $repeat = $_POST['repeat_password'];
+	    
+	    // Sprawdź czy nowe hasła pasują
+	    if($new !== $repeat) {
+	        $_SESSION['error'] = "Hasła nie pasują!";
+	        header("Location: admin.php");
+	        exit();
+	    }
+	    
+	    // Pobierz stare hasło
+	    $result = mysqli_query($conn, "SELECT password FROM users WHERE id = {$_SESSION['user_id']}");
+	    $user = mysqli_fetch_assoc($result);
+	    
+	    // Sprawdź stare hasło
+	    if(!password_verify($old, $user['password'])) {
+	        $_SESSION['error'] = "Stare hasło jest nieprawidłowe!";
+	        header("Location: admin.php");
+	        exit();
+	    }
+	    
+	    // Zapisz nowe hasło
+	    $hashed = password_hash($new, PASSWORD_DEFAULT);
+	    mysqli_query($conn, "UPDATE users SET password = '$hashed' WHERE id = {$_SESSION['user_id']}");
+	    
+	    $_SESSION['message'] = "Hasło zmienione!";
+	    header("Location: admin.php");
+	    exit();
 	}
 }
 
@@ -363,6 +412,7 @@ $users_result2 = mysqli_query($conn, $users_query2);
 								<tr>
 									<th>ID</th>
 									<th>Login</th>
+									<th>Rola</th>
 									<th>Akcje</th>
 								</tr>
 							</thead>
@@ -371,6 +421,7 @@ $users_result2 = mysqli_query($conn, $users_query2);
 								<tr>
 									<td><?= $row['id'] ?></td>
 									<td><?= htmlspecialchars($row['login']) ?></td>
+									<td><?= htmlspecialchars($row['role']) ?></td>
 									<td>
 										<button 
 											type="button"
@@ -438,8 +489,8 @@ $users_result2 = mysqli_query($conn, $users_query2);
 					<p>Czy chciałbyś usunąć tego użytkownika?</p>
 					<label for="_user_id">Id: </label>
 					<input type="text" id="_user_id" name="_user_id" readonly><br>
-					<label for="login">Login: </label>
-					<input type="text" id="login" name="login" readonly><br>
+					<label for="del_login">Login: </label>
+					<input type="text" id="del_login" name="del_login" readonly><br>
 					<br>
 					<button type="submit">Usuń użytkownika</button>
 					<button type="button" onclick="showDiv('uzytkownicy')">Anuluj</button>
@@ -452,17 +503,20 @@ $users_result2 = mysqli_query($conn, $users_query2);
 						<input type="hidden" name="action" value="update_user">
 						<table>
 							<tr>
-								<td>Login: <input type="text" id="login" name="login"></td>
+								<td>Id: <input type="text" id="edit_user_id" name="edit_user_id"></td>
 							</tr>
 							<tr>
-								<td>Password: <input type="text" id="password" name="password"></td>
+								<td>Login: <input type="text" id="edit_login" name="edit_login"></td>
 							</tr>
 							<tr>
-								<td>Email: <input type="text" id="email" name="email"></td>
+								<td>Password: <input type="text" id="edit_password" name="edit_password"></td>
+							</tr>
+							<tr>
+								<td>Email: <input type="text" id="edit_email" name="edit_email"></td>
 							</tr>
 							<tr>
 								<td>Rola: 
-									<select id="role" name="role">
+									<select id="edit_role" name="edit_role">
 										<option value="user">Użytkownik</option>
 										<option value="admin">Administrator</option>
 										<option value="support">Support</option>
@@ -497,6 +551,31 @@ $users_result2 = mysqli_query($conn, $users_query2);
 						</table>
 						<?php } ?>
 					</article>
+					<article>
+						<button type="button" onclick="showDiv('change-password')">Zmień hasło</button>
+					</article>
+				</section>
+			</div>
+			<div id="change-password" class="section hidden">
+				<h2>Zmień hasło</h2>
+				<section>
+					<form id="changePasswordForm" method="POST" action="">
+						<input type="hidden" name="action" value="change_password">
+						<table>
+							<tr>
+								<td>Hasło: <input type="text" id="old_password" name="edit_password"></td>
+							</tr>
+							<tr>
+								<td>Nowe hasło: <input type="text" id="new_password" name="edit_password"></td>
+							</tr>
+							<tr>
+								<td>Powtórz hasło: <input type="text" id="repeat_password" name="edit_password"></td>
+							</tr>
+						</table>
+						<br>
+						<button type="submit">Zapisz zmiany</button>
+						<button type="button" onclick="showDiv('profil')">Anuluj</button>
+					</form>
 				</section>
 			</div>
 			<script src="script.js"></script>

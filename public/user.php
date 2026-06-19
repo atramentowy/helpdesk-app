@@ -61,16 +61,47 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 				VALUES (NULL, {$_SESSION['user_id']}, '$title', '$description', 
 				'nowe', '$priority', current_timestamp())";
 
-			$new_ticket_result = mysqli_query($conn, $ticket);
-
-			echo "Zgłoszenie pomyślnie stworzone";
+			if($new_ticket_result) {
+				echo "Zgłoszenie pomyślnie stworzone";
+			} else {
+				echo "Error";
+			}
 
 			header("Location: user.php");
 			exit();
 		}
 	}
-	else if($action == 'new_comment') {
-		echo "test";
+	else if($action == 'change_password') {
+	    // Pobierz dane
+	    $old = $_POST['old_password'];
+	    $new = $_POST['new_password'];
+	    $repeat = $_POST['repeat_password'];
+	    
+	    // Sprawdź czy nowe hasła pasują
+	    if($new !== $repeat) {
+	        $_SESSION['error'] = "Hasła nie pasują!";
+	        header("Location: user.php");
+	        exit();
+	    }
+	    
+	    // Pobierz stare hasło
+	    $result = mysqli_query($conn, "SELECT password FROM users WHERE id = {$_SESSION['user_id']}");
+	    $user = mysqli_fetch_assoc($result);
+	    
+	    // Sprawdź stare hasło
+	    if(!password_verify($old, $user['password'])) {
+	        $_SESSION['error'] = "Stare hasło jest nieprawidłowe!";
+	        header("Location: user.php");
+	        exit();
+	    }
+	    
+	    // Zapisz nowe hasło
+	    $hashed = password_hash($new, PASSWORD_DEFAULT);
+	    mysqli_query($conn, "UPDATE users SET password = '$hashed' WHERE id = {$_SESSION['user_id']}");
+	    
+	    $_SESSION['message'] = "Hasło zmienione!";
+	    header("Location: user.php");
+	    exit();
 	}
 }
 
@@ -157,20 +188,9 @@ $profile_result = mysqli_query($conn, $profile_query);
 								<td colspan="4">Opis: <?= htmlspecialchars($row['description']) ?></td>
 							</tr>
 						</table>
-					<input type="button" onclick="showDiv('podglad-zgloszenia')" value="Podgląd">
 					</article>
-
 					<?php } ?>
 				</section>
-			</div>
-			<div id="podglad-zgloszenia" class="section hidden">
-				<h2>Podgląd zgłoszenia</h2>
-
-				<form method="POST" action="">
-			        <input type="hidden" name="ticket_id" id="new_comment">
-			        <textarea name="comment" rows="3" placeholder="Dodaj komentarz..." required></textarea>
-			        <button type="submit" name="add_comment">Dodaj komentarz</button>
-			    </form>
 			</div>
 			<div id="nowe-zgloszenie" class="section hidden">
 				<h2>Nowe zgłoszenie</h2>
@@ -213,6 +233,31 @@ $profile_result = mysqli_query($conn, $profile_query);
 						</table>
 						<?php } ?>
 					</article>
+					<article>
+						<button type="button" onclick="showDiv('change-password')">Zmień hasło</button>
+					</article>
+				</section>
+			</div>
+			<div id="change-password" class="section hidden">
+				<h2>Zmień hasło</h2>
+				<section>
+					<form id="changePasswordForm" method="POST" action="">
+						<input type="hidden" name="action" value="change_password">
+						<table>
+							<tr>
+								<td>Hasło: <input type="text" id="old_password" name="edit_password"></td>
+							</tr>
+							<tr>
+								<td>Nowe hasło: <input type="text" id="new_password" name="edit_password"></td>
+							</tr>
+							<tr>
+								<td>Powtórz hasło: <input type="text" id="repeat_password" name="edit_password"></td>
+							</tr>
+						</table>
+						<br>
+						<button type="submit">Zapisz zmiany</button>
+						<button type="button" onclick="showDiv('profil')">Anuluj</button>
+					</form>
 				</section>
 			</div>
 			<script src="script.js"></script>
